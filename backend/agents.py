@@ -53,7 +53,7 @@ _agent_cache: dict[str, Agent] = {}
 def _get_agent(name: str, model_name: str, output_type, system_prompt: str) -> Agent:
     if name not in _agent_cache:
         _agent_cache[name] = Agent(
-            model=_model(model_name), output_type=output_type, system_prompt=system_prompt,
+            model=_model(model_name), output_type=output_type, system_prompt=system_prompt, retries={"output": 3},
         )
     return _agent_cache[name]
 
