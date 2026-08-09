@@ -8,7 +8,7 @@ venv/
 .venv/
 env/
 ENV/
-docs/*.md
+docs/
 
 # Secrets
 .env

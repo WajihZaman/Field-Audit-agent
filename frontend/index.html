@@ -1,0 +1,582 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>BroadPeak Field Audit Intelligence</title>
+
+    <link rel="stylesheet" href="/static/styles.css">
+</head>
+
+<body>
+
+<div class="app-shell">
+
+    <!-- ================= HEADER ================= -->
+
+    <header class="topbar">
+        <div>
+            <div class="brand">
+                <span class="brand-icon">🏌️</span>
+                <span>Field Audit Intelligence</span>
+            </div>
+
+            <div class="subtitle">
+                BroadPeak Investment Group · AI-assisted field audit
+            </div>
+        </div>
+
+        <div id="connectionStatus" class="status-pill checking">
+            Checking backend...
+        </div>
+    </header>
+
+
+    <!-- ================= LAYOUT ================= -->
+
+    <div class="layout">
+
+        <!-- SIDEBAR -->
+
+        <aside class="sidebar">
+
+            <div class="sidebar-section">
+                <h3>Audit Setup</h3>
+
+                <label for="locationSelect">
+                    Location
+                </label>
+
+                <select id="locationSelect">
+                    <option value="">Loading locations...</option>
+                </select>
+
+                <label for="consultantName">
+                    Consultant name
+                </label>
+
+                <input
+                    type="text"
+                    id="consultantName"
+                    value="Jordan Rivera"
+                    placeholder="Consultant name"
+                >
+            </div>
+
+
+            <div class="sidebar-divider"></div>
+
+
+            <div class="sidebar-info">
+                <div>
+                    <span>Backend</span>
+                    <strong id="backendUrl">Current app</strong>
+                </div>
+
+                <div>
+                    <span>Review data</span>
+                    <strong id="reviewMode">Checking...</strong>
+                </div>
+            </div>
+
+
+            <button
+                id="resetSessionBtn"
+                class="button button-secondary full-width"
+            >
+                Reset Session
+            </button>
+
+        </aside>
+
+
+        <!-- MAIN CONTENT -->
+
+        <main class="main-content">
+
+            <!-- GLOBAL ALERT -->
+
+            <div id="globalAlert" class="alert hidden"></div>
+
+
+            <!-- ================= INTAKE ================= -->
+
+            <section id="intakeStage" class="stage">
+
+                <div class="page-heading">
+                    <div>
+                        <h1>Field Audit Checklist</h1>
+
+                        <p>
+                            Structured checklist for speed. Mark anything that fails
+                            and add a specific note. The more concrete the note,
+                            the less likely you'll be asked a follow-up question.
+                        </p>
+                    </div>
+
+                    <div class="step-indicator">
+                        Step 1 of 3
+                    </div>
+                </div>
+
+
+                <form id="auditForm">
+
+                    <div id="checklistContainer"></div>
+
+
+                    <!-- FREE TEXT -->
+
+                    <div class="form-section">
+
+                        <div class="section-heading">
+                            <span class="section-number">2</span>
+
+                            <div>
+                                <h2>Free-Text Notes</h2>
+                                <p>
+                                    Anything else worth noting about the visit overall?
+                                </p>
+                            </div>
+                        </div>
+
+                        <textarea
+                            id="freeTextNotes"
+                            rows="5"
+                            placeholder="Add any additional observations..."
+                        ></textarea>
+
+                    </div>
+
+
+                    <!-- PHOTO DESCRIPTION -->
+
+                    <div class="form-section">
+
+                        <div class="section-heading">
+                            <span class="section-number">3</span>
+
+                            <div>
+                                <h2>Photo Description</h2>
+                                <p>
+                                    Stand-in for an attached photo in this POC.
+                                </p>
+                            </div>
+                        </div>
+
+                        <textarea
+                            id="photoDescription"
+                            rows="4"
+                            placeholder="Describe what a photo would show..."
+                        ></textarea>
+
+                    </div>
+
+
+                    <div class="form-actions">
+
+                        <button
+                            type="submit"
+                            id="precheckBtn"
+                            class="button button-primary button-large"
+                        >
+                            Run Pre-Check
+                        </button>
+
+                    </div>
+
+                </form>
+
+            </section>
+
+
+            <!-- ================= CLARIFICATION ================= -->
+
+            <section id="clarifyingStage" class="stage hidden">
+
+                <div class="page-heading">
+
+                    <div>
+                        <div class="eyebrow">
+                            AI FOLLOW-UP
+                        </div>
+
+                        <h1>
+                            A quick follow-up before we finalize findings
+                        </h1>
+
+                        <p>
+                            The AI identified information that is too thin to
+                            turn into a defensible finding without clarification.
+                        </p>
+                    </div>
+
+                    <div class="step-indicator">
+                        Step 2 of 3
+                    </div>
+
+                </div>
+
+
+                <div class="info-card">
+
+                    <div class="info-card-title">
+                        Why we're asking
+                    </div>
+
+                    <div id="clarificationReasoning"></div>
+
+                </div>
+
+
+                <div class="notice-card">
+
+                    Answer what you can. Anything left blank will be marked
+                    for manager review rather than guessed at.
+
+                </div>
+
+
+                <div id="clarificationQuestions"></div>
+
+
+                <label class="checkbox-row">
+
+                    <input
+                        type="checkbox"
+                        id="proceedAnyway"
+                    >
+
+                    <span>
+                        I don't have more detail to add — proceed anyway.
+                        Unanswered items will be flagged for manager review,
+                        not asserted as fact.
+                    </span>
+
+                </label>
+
+
+                <div class="form-actions">
+
+                    <button
+                        id="submitClarificationBtn"
+                        class="button button-primary"
+                    >
+                        Submit Answers & Generate Report
+                    </button>
+
+                    <button
+                        id="clarificationResetBtn"
+                        class="button button-secondary"
+                    >
+                        Start Over
+                    </button>
+
+                </div>
+
+            </section>
+
+
+            <!-- ================= READY ================= -->
+
+            <section id="readyStage" class="stage hidden">
+
+                <div class="success-card">
+
+                    <div class="success-icon">
+                        ✓
+                    </div>
+
+                    <div>
+                        <h2>Input looks specific enough</h2>
+
+                        <p>
+                            The audit contains enough information to generate
+                            defensible findings.
+                        </p>
+                    </div>
+
+                </div>
+
+
+                <div class="form-actions">
+
+                    <button
+                        id="generateReportBtn"
+                        class="button button-primary button-large"
+                    >
+                        Generate Audit Report
+                    </button>
+
+                    <button
+                        id="backToChecklistBtn"
+                        class="button button-secondary"
+                    >
+                        Back to Checklist
+                    </button>
+
+                </div>
+
+            </section>
+
+
+            <!-- ================= REPORT ================= -->
+
+            <section id="reportStage" class="stage hidden">
+
+                <div class="page-heading">
+
+                    <div>
+
+                        <div class="eyebrow">
+                            AUDIT COMPLETE
+                        </div>
+
+                        <h1 id="reportTitle">
+                            Audit Report
+                        </h1>
+
+                    </div>
+
+                    <div class="step-indicator complete">
+                        Complete
+                    </div>
+
+                </div>
+
+
+                <!-- MOCK REVIEW WARNING -->
+
+                <div
+                    id="mockReviewsWarning"
+                    class="warning-card hidden"
+                >
+                    <strong>Demo mode</strong>
+
+                    <p>
+                        No live Google Maps API key is configured on this
+                        deployment, so the review data below is synthetic
+                        sample data, not real reviews.
+                    </p>
+                </div>
+
+
+                <!-- TABS -->
+
+                <div class="tabs">
+
+                    <button
+                        class="tab-button active"
+                        data-tab="consultant"
+                    >
+                        Consultant View
+                    </button>
+
+                    <button
+                        class="tab-button"
+                        data-tab="franchisee"
+                    >
+                        Franchisee View
+                    </button>
+
+                </div>
+
+
+                <!-- CONSULTANT -->
+
+                <div
+                    id="consultantTab"
+                    class="tab-content active"
+                >
+
+                    <div class="summary-card">
+
+                        <div class="summary-label">
+                            Overall Summary
+                        </div>
+
+                        <div
+                            id="overallSummary"
+                            class="summary-text"
+                        ></div>
+
+                    </div>
+
+
+                    <div class="report-section">
+
+                        <div class="report-section-header">
+
+                            <div>
+                                <h2>Findings</h2>
+
+                                <p>
+                                    AI-generated findings based on observed
+                                    evidence and standards.
+                                </p>
+                            </div>
+
+                            <span id="findingCount" class="count-badge">
+                                0
+                            </span>
+
+                        </div>
+
+
+                        <div id="findingsContainer"></div>
+
+                    </div>
+
+
+                    <!-- REVIEW CORRELATION -->
+
+                    <div
+                        id="reviewInsightsSection"
+                        class="report-section hidden"
+                    >
+
+                        <div class="report-section-header">
+
+                            <div>
+                                <h2>Public Review Correlation</h2>
+
+                                <p id="reviewCaveat"></p>
+                            </div>
+
+                        </div>
+
+                        <div id="reviewThemes"></div>
+
+                    </div>
+
+
+                    <!-- AUDIT TRAIL -->
+
+                    <details class="audit-trail">
+
+                        <summary>
+                            Audit trail — full prompts/responses for every AI step
+                        </summary>
+
+                        <div
+                            id="auditTrailContainer"
+                            class="trail-content"
+                        >
+                            Loading audit trail...
+                        </div>
+
+                    </details>
+
+                </div>
+
+
+                <!-- FRANCHISEE -->
+
+                <div
+                    id="franchiseeTab"
+                    class="tab-content"
+                >
+
+                    <div class="franchisee-message">
+
+                        <div class="message-label">
+                            A note from your BroadPeak field team
+                        </div>
+
+                        <div
+                            id="franchiseeMessage"
+                            class="message-text"
+                        ></div>
+
+                    </div>
+
+
+                    <div
+                        id="correctiveActionsSection"
+                        class="report-section"
+                    >
+
+                        <div class="report-section-header">
+
+                            <div>
+                                <h2>Corrective Action Plan</h2>
+
+                                <p>
+                                    Recommended actions from this audit.
+                                </p>
+                            </div>
+
+                        </div>
+
+                        <div
+                            id="correctiveActionsContainer"
+                            class="actions-table"
+                        ></div>
+
+                    </div>
+
+
+                    <div
+                        id="franchiseeReviewsSection"
+                        class="report-section hidden"
+                    >
+
+                        <h2>What guests have been saying recently</h2>
+
+                        <p id="franchiseeReviewCaveat"></p>
+
+                        <div id="franchiseeReviewThemes"></div>
+
+                    </div>
+
+                </div>
+
+
+                <div class="new-audit-container">
+
+                    <button
+                        id="newAuditBtn"
+                        class="button button-primary"
+                    >
+                        Start a New Audit
+                    </button>
+
+                </div>
+
+            </section>
+
+        </main>
+
+    </div>
+
+
+    <!-- ================= LOADING OVERLAY ================= -->
+
+    <div
+        id="loadingOverlay"
+        class="loading-overlay hidden"
+    >
+
+        <div class="loading-box">
+
+            <div class="spinner"></div>
+
+            <div
+                id="loadingMessage"
+                class="loading-message"
+            >
+                Processing...
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<script src="/static/app.js"></script>
+
+</body>
+</html>

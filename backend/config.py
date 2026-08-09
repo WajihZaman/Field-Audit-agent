@@ -67,7 +67,7 @@ class Settings(BaseSettings):
     chroma_path: str = str(DATA_DIR / "chroma")
 
     # --- Backend network ---------------------------------------------------
-    backend_host: str = "0.0.0.0"
+    backend_host: str = "127.0.0.1"
     backend_port: int = int(os.getenv("BACKEND_PORT", "8000"))
     backend_internal_url: str = os.getenv(
         "BACKEND_INTERNAL_URL", f"http://127.0.0.1:{os.getenv('BACKEND_PORT', '8000')}"
