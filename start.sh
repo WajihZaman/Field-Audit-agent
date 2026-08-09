@@ -8,30 +8,46 @@
 # reachable) on 7860, with the frontend calling the backend over localhost.
 set -e
 
+# 1. Define and EXPORT ports/URLs so both Python processes share the exact same config
 BACKEND_PORT="${BACKEND_PORT:-8000}"
+export BACKEND_PORT
+export BACKEND_INTERNAL_URL="http://127.0.0.1:${BACKEND_PORT}"
 
 echo "[start.sh] Launching FastAPI backend on port ${BACKEND_PORT}..."
-python -m uvicorn backend.main:app --host 0.0.0.0 --port "${BACKEND_PORT}" &
+# 2. Bind to 127.0.0.1 since it's strictly internal to this container
+python -m uvicorn backend.main:app --host 127.0.0.1 --port "${BACKEND_PORT}" &
 BACKEND_PID=$!
 
 cleanup() {
   echo "[start.sh] Shutting down backend (pid ${BACKEND_PID})..."
   kill "${BACKEND_PID}" 2>/dev/null || true
+  wait "${BACKEND_PID}" 2>/dev/null || true
 }
 trap cleanup EXIT
 
 echo "[start.sh] Waiting for backend health check..."
-for i in $(seq 1 30); do
-  if curl -sf "http://127.0.0.1:${BACKEND_PORT}/health" > /dev/null 2>&1; then
+# 3. Use Python for the health check to avoid missing `curl` in slim Docker images
+# 4. Explicitly fail the container build/start if the backend doesn't respond
+MAX_RETRIES=45
+for i in $(seq 1 $MAX_RETRIES); do
+  if python -c "import urllib.request; urllib.request.urlopen('${BACKEND_INTERNAL_URL}/health')" > /dev/null 2>&1; then
     echo "[start.sh] Backend is healthy."
     break
+  fi
+  
+  if [ "$i" -eq "$MAX_RETRIES" ]; then
+    echo "[start.sh] ERROR: Backend failed to start within ${MAX_RETRIES} seconds."
+    exit 1
   fi
   sleep 1
 done
 
 echo "[start.sh] Launching Streamlit frontend on port 7860..."
+# 5. Disable CORS and XSRF protection to prevent websocket/proxy issues in HF Spaces
 streamlit run frontend/streamlit_app.py \
   --server.port=7860 \
   --server.address=0.0.0.0 \
   --server.headless=true \
-  --browser.gatherUsageStats=false
+  --browser.gatherUsageStats=false \
+  --server.enableCORS=false \
+  --server.enableXsrfProtection=false
