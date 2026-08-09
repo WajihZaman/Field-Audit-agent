@@ -1,10 +1,29 @@
+# Python
 __pycache__/
-*.pyc
+*.py[cod]
+*$py.class
+*.so
+.Python
 venv/
 .venv/
+env/
+ENV/
+
+# Secrets
 .env
-docs/
-data/
+.env.local
+
+# Project Data (Keep the folder, ignore the heavy/binary contents)
 data/*.db
 data/chroma/
 !data/.gitkeep
+
+# OS & IDE
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.swp
+
+# Local scratchpads
+exported-code*.md
