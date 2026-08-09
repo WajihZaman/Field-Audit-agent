@@ -52,8 +52,8 @@ class Settings(BaseSettings):
     # hundreds of locations doing several LLM calls per audit -- see the
     # written summary for the business rationale. Defaults are Groq's
     # current (mid-2026) general-purpose production-tier models.
-    model_fast: str = os.getenv("BROADPEAK_MODEL_FAST", "llama-3.1-8b-instant")
-    model_strong: str = os.getenv("BROADPEAK_MODEL_STRONG", "llama-3.3-70b-versatile")
+    model_fast: str = os.getenv("BROADPEAK_MODEL_FAST", "openai/gpt-oss-20b")
+    model_strong: str = os.getenv("BROADPEAK_MODEL_STRONG", "openai/gpt-oss-120b")
 
     # --- Google Places -------------------------------------------------
     google_maps_api_key: str | None = None
