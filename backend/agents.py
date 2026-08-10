@@ -23,6 +23,7 @@ and what it said.
 from __future__ import annotations
 
 from pydantic_ai import Agent
+from pydantic_ai.exceptions import ModelHTTPError
 from pydantic_ai.models.groq import GroqModel
 from pydantic_ai.providers.groq import GroqProvider
 
@@ -57,6 +58,37 @@ def _get_agent(name: str, model_name: str, output_type, system_prompt: str) -> A
         )
     return _agent_cache[name]
 
+
+async def run_with_retry(agent: Agent, prompt: str, max_attempts: int = 3):
+    """
+    Workaround for a pydantic-ai gap (open as of pydantic-ai-slim 2.27.0):
+    Groq's `output_parse_failed` error -- the model emits a malformed
+    `final_result` tool call that even Groq's own parser can't read -- isn't
+    recognized by pydantic-ai's Groq error handler (which only matches
+    `code == 'tool_use_failed'`). That means it bypasses the `retries=`
+    setting entirely and raises immediately. We catch that specific case
+    here and retry the same prompt ourselves.
+
+    Any other error (bad API key, rate limit, network issue, etc.) is
+    re-raised immediately -- we only retry the one known parse-failure
+    signature.
+    """
+    last_exc: ModelHTTPError | None = None
+    for attempt in range(max_attempts):
+        try:
+            return await agent.run(prompt)
+        except ModelHTTPError as e:
+            body = e.body if isinstance(e.body, dict) else {}
+            code = body.get("error", {}).get("code")
+            if e.status_code == 400 and code in ("output_parse_failed", "tool_use_failed"):
+                last_exc = e
+                print(f"[groq-retry] {code} on attempt {attempt + 1}/{max_attempts}, retrying...")
+                continue
+            raise
+         
+    assert last_exc is not None  # every loop iteration above either returned or set last_exc
+    
+    raise last_exc
 
 # ---------------------------------------------------------------------------
 # 1. Clarification Agent

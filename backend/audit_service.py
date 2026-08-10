@@ -89,7 +89,7 @@ async def run_clarification(req: AuditInputRequest) -> tuple[str, ClarificationC
     # result = await agents.get_clarification_agent().run(prompt)
     # check = result.output
     
-    result = await agents.get_clarification_agent().run(prompt)
+    result = await agents.run_with_retry(agents.get_clarification_agent(), prompt)
     check = cast(ClarificationCheck, result.output)
 
     db.log_audit_trail(audit_id, "clarification_check", settings.model_fast, prompt, check.model_dump_json())
@@ -165,7 +165,7 @@ async def run_full_audit(req: RunAuditRequest) -> AuditReportOut:
     # findings_result = await agents.get_findings_agent().run(findings_prompt)
     # findings_report: FindingsReport = findings_result.output
     
-    findings_result = await agents.get_findings_agent().run(findings_prompt)
+    findings_result = await agents.run_with_retry(agents.get_findings_agent(), findings_prompt)
     findings_report = cast(FindingsReport, findings_result.output)
     
     db.log_audit_trail(audit_id, "findings_agent", settings.model_strong, findings_prompt,
@@ -206,7 +206,7 @@ async def run_full_audit(req: RunAuditRequest) -> AuditReportOut:
     # review_result = await agents.get_review_agent().run(reviews_prompt)
     # review_insights: ReviewInsights = review_result.output  # Explicit type annotation
     
-    review_result = await agents.get_review_agent().run(reviews_prompt)
+    review_result = await agents.run_with_retry(agents.get_review_agent(), reviews_prompt)
     review_insights = cast(ReviewInsights, review_result.output)
     
     db.log_audit_trail(audit_id, "review_agent", settings.model_fast, reviews_prompt,
@@ -233,7 +233,7 @@ async def run_full_audit(req: RunAuditRequest) -> AuditReportOut:
         # corrective_result = await agents.get_corrective_action_agent().run(corrective_prompt)
         # action_plan: CorrectiveActionPlan = corrective_result.output  # Explicit type annotation
         
-        corrective_result = await agents.get_corrective_action_agent().run(corrective_prompt)
+        corrective_result = await agents.run_with_retry(agents.get_corrective_action_agent(), corrective_prompt)
         action_plan = cast(CorrectiveActionPlan, corrective_result.output)
         
         db.log_audit_trail(audit_id, "corrective_action_agent", settings.model_strong,
